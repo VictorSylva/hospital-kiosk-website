@@ -21,6 +21,14 @@ app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:5173" }));
 app.use(express.json());
 app.use(auditLogMiddleware);
 
+// Diagnostic Ping Route (Added to test Vercel boot)
+app.get("/api/v1/ping", (req: Request, res: Response) => {
+  res.json({ status: "pong", message: "Server is alive and routing works!" });
+});
+app.post("/api/v1/ping", (req: Request, res: Response) => {
+  res.json({ status: "pong", message: "POST works too!" });
+});
+
 // DB Readiness Check
 app.use((req: Request, res: Response, next: express.NextFunction) => {
   if (isDbReady) {
@@ -158,9 +166,11 @@ const startServer = async (): Promise<void> => {
     dbError = error;
     console.error("Failed to start server:", error);
   } finally {
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    if (!process.env.VERCEL) {
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    }
   }
 };
 
