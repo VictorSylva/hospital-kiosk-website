@@ -154,16 +154,13 @@ const startServer = async (): Promise<void> => {
     await ensurePatientProfiles();
 
     isDbReady = true;
-
-    if (!process.env.VERCEL) {
-      app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-      });
-    }
   } catch (error) {
     dbError = error;
     console.error("Failed to start server:", error);
-    // Do NOT exit process in serverless environments to allow graceful error handling
+  } finally {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
   }
 };
 
