@@ -122,7 +122,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
 
     const passwordHash = await hashPassword(password);
 
-    const newUser: any = await sequelize.transaction(async (transaction) => {
+    const newUser: any = await sequelize.transaction(async (transaction: any) => {
       const createdUser: any = await User.create(
         {
           name,
@@ -196,7 +196,7 @@ export const register = async (
 
     const passwordHash = await hashPassword(password);
 
-    const newUser: any = await sequelize.transaction(async (transaction) => {
+    const newUser: any = await sequelize.transaction(async (transaction: any) => {
       const createdUser: any = await User.create(
         {
           name,
