@@ -2,7 +2,7 @@
   "name": "hdms-backend",
   "version": "1.0.0",
   "description": "Hospital Digital Health Management System - Backend",
-  "main": "src/server.js",
+  "main": "dist/server.js",
   "type": "module",
   "scripts": {
     "start": "node dist/server.js",
