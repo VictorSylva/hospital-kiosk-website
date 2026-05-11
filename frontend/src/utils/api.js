@@ -27,6 +27,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // Vercel serverless errors can return an object { code, message } inside data.error
+    // This prevents React from crashing (Error #31) when rendering error messages in toast
+    if (error.response?.data?.error && typeof error.response.data.error === 'object') {
+      const errObj = error.response.data.error;
+      error.response.data.error = errObj.message || errObj.code || 'An unexpected server error occurred';
+    }
+
     // If we get an Unauthorized response (401), we might have an expired token
     const originalRequest = error.config;
     
