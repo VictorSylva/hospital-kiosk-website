@@ -21,6 +21,20 @@ app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:5173" }));
 app.use(express.json());
 app.use(auditLogMiddleware);
 
+// DB Readiness Check
+app.use((req: Request, res: Response, next: express.NextFunction) => {
+  if (isDbReady) {
+    return next();
+  }
+  
+  if (dbError) {
+    res.status(500).json({ error: "Database initialization failed: " + (dbError.message || "Unknown error") });
+    return;
+  }
+  
+  res.status(503).json({ error: "Server is starting up, please try again in a moment" });
+});
+
 // Routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/departments", departmentRoutes);
@@ -109,6 +123,9 @@ const ensureHardcodedAdmin = async (): Promise<void> => {
   );
 };
 
+let isDbReady = false;
+let dbError: any = null;
+
 const startServer = async (): Promise<void> => {
   try {
     await sequelize.authenticate();
@@ -136,15 +153,21 @@ const startServer = async (): Promise<void> => {
     await ensureHardcodedAdmin();
     await ensurePatientProfiles();
 
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    isDbReady = true;
+
+    if (!process.env.VERCEL) {
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    }
   } catch (error) {
+    dbError = error;
     console.error("Failed to start server:", error);
-    process.exit(1);
+    // Do NOT exit process in serverless environments to allow graceful error handling
   }
 };
 
+// Start initialization but don't block
 startServer();
 
 export default app;
