@@ -1,22 +1,13 @@
 {
   "name": "project",
   "version": "1.0.0",
-  "description": "A comprehensive healthcare platform for managing patient appointments, electronic health records, prescriptions, and vital signs.",
-  "main": "index.js",
+  "private": true,
   "scripts": {
-    "build": "npm install --prefix frontend && npm install --prefix backend && npm run build --prefix frontend && npm run build --prefix backend && mkdir -p public && cp -r frontend/dist/* public/",
     "install-all": "npm install --prefix frontend && npm install --prefix backend",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm run install-all && npm run build --prefix frontend && npm run build --prefix backend && mkdir -p public && cp -r frontend/dist/* public/",
+    "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\""
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/VictorSylva/hospital-kiosk-website.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/VictorSylva/hospital-kiosk-website/issues"
-  },
-  "homepage": "https://github.com/VictorSylva/hospital-kiosk-website#readme"
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
 }
