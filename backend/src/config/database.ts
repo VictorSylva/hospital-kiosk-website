@@ -28,5 +28,4 @@ try {
   } as unknown as Sequelize;
 }
 
-const sequelize = sequelizeInstance as Sequelize;
-export default sequelize;
+export const sequelize = sequelizeInstance as Sequelize;

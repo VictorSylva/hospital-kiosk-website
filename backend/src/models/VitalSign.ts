@@ -1,5 +1,5 @@
 import { DataTypes, Model, Optional } from 'sequelize';
-import sequelize from '../config/database.js';
+import { sequelize } from '../config/database.js';
 
 export interface VitalSignAttributes {
   id: string;
@@ -11,11 +11,13 @@ export interface VitalSignAttributes {
   blood_pressure_diastolic: number | null;
   temperature: number | null;
   heart_rate: number | null;
+  spo2: number | null;
   oxygen_saturation: number | null;
   bmi: number | null;
+  is_abnormal: boolean;
 }
 
-export interface VitalSignCreationAttributes extends Optional<VitalSignAttributes, 'id' | 'weight' | 'height' | 'blood_pressure_systolic' | 'blood_pressure_diastolic' | 'temperature' | 'heart_rate' | 'oxygen_saturation' | 'bmi'> {}
+export interface VitalSignCreationAttributes extends Optional<VitalSignAttributes, 'id' | 'weight' | 'height' | 'blood_pressure_systolic' | 'blood_pressure_diastolic' | 'temperature' | 'heart_rate' | 'spo2' | 'oxygen_saturation' | 'bmi' | 'is_abnormal'> {}
 export interface VitalSignInstance extends Model<VitalSignAttributes, VitalSignCreationAttributes>, VitalSignAttributes {}
 
 export const VitalSign = sequelize.define<VitalSignInstance>('VitalSign', {
@@ -56,6 +58,10 @@ export const VitalSign = sequelize.define<VitalSignInstance>('VitalSign', {
     type: DataTypes.INTEGER,
     allowNull: true
   },
+  spo2: {
+    type: DataTypes.INTEGER,
+    allowNull: true
+  },
   oxygen_saturation: {
     type: DataTypes.INTEGER,
     allowNull: true
@@ -63,6 +69,10 @@ export const VitalSign = sequelize.define<VitalSignInstance>('VitalSign', {
   bmi: {
     type: DataTypes.DECIMAL(4, 1),
     allowNull: true
+  },
+  is_abnormal: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   }
 }, {
   tableName: 'vital_signs',

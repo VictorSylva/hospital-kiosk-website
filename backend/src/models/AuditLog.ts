@@ -1,16 +1,17 @@
 import { DataTypes, Model, Optional } from 'sequelize';
-import sequelize from '../config/database.js';
+import { sequelize } from '../config/database.js';
 
 export interface AuditLogAttributes {
   id: string;
   user_id: string | null;
   action: string;
   module: string;
+  table_name: string | null;
   details: string | null;
   ip_address: string | null;
 }
 
-export interface AuditLogCreationAttributes extends Optional<AuditLogAttributes, 'id' | 'user_id' | 'details' | 'ip_address'> {}
+export interface AuditLogCreationAttributes extends Optional<AuditLogAttributes, 'id' | 'user_id' | 'table_name' | 'details' | 'ip_address'> {}
 export interface AuditLogInstance extends Model<AuditLogAttributes, AuditLogCreationAttributes>, AuditLogAttributes {}
 
 export const AuditLog = sequelize.define<AuditLogInstance>('AuditLog', {
@@ -31,6 +32,10 @@ export const AuditLog = sequelize.define<AuditLogInstance>('AuditLog', {
     type: DataTypes.STRING,
     allowNull: false
   },
+  table_name: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   details: {
     type: DataTypes.TEXT,
     allowNull: true
@@ -42,5 +47,5 @@ export const AuditLog = sequelize.define<AuditLogInstance>('AuditLog', {
 }, {
   tableName: 'audit_logs',
   timestamps: true,
-  updatedAt: false // Audit logs are immutable
+  updatedAt: false
 });

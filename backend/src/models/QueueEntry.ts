@@ -1,5 +1,5 @@
 import { DataTypes, Model, Optional } from 'sequelize';
-import sequelize from '../config/database.js';
+import { sequelize } from '../config/database.js';
 
 export interface QueueEntryAttributes {
   id: string;
@@ -8,9 +8,10 @@ export interface QueueEntryAttributes {
   appointment_id: string | null;
   status: 'waiting' | 'called' | 'in-progress' | 'completed';
   queue_number: string;
+  token_number: number;
 }
 
-export interface QueueEntryCreationAttributes extends Optional<QueueEntryAttributes, 'id' | 'appointment_id' | 'status'> {}
+export interface QueueEntryCreationAttributes extends Optional<QueueEntryAttributes, 'id' | 'appointment_id' | 'status' | 'token_number'> {}
 export interface QueueEntryInstance extends Model<QueueEntryAttributes, QueueEntryCreationAttributes>, QueueEntryAttributes {}
 
 export const QueueEntry = sequelize.define<QueueEntryInstance>('QueueEntry', {
@@ -38,6 +39,11 @@ export const QueueEntry = sequelize.define<QueueEntryInstance>('QueueEntry', {
   queue_number: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  token_number: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    autoIncrement: true
   }
 }, {
   tableName: 'queue_entries',
