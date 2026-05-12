@@ -1,59 +1,77 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import sequelize from "./config/database.js";
-import { User, Patient } from "./models/index.js";
-import { hashPassword } from "./utils/authUtils.js";
 import { auditLogMiddleware } from "./middleware/auditLog.js";
-import authRoutes from "./routes/authRoutes.js";
-import departmentRoutes from "./routes/departmentRoutes.js";
-import queueRoutes from "./routes/queueRoutes.js";
-import ehrRoutes from "./routes/ehrRoutes.js";
-import pharmacyRoutes from "./routes/pharmacyRoutes.js";
-import vitalsRoutes from "./routes/vitalsRoutes.js";
+
+// We will dynamically import these inside startServer to prevent top-level crashes
+let User: any;
+let Patient: any;
+let sequelize: any;
+let authRoutes: any;
+let departmentRoutes: any;
+let queueRoutes: any;
+let ehrRoutes: any;
+let pharmacyRoutes: any;
+let vitalsRoutes: any;
+let hashPassword: any;
+
 
 dotenv.config();
 
 const app = express();
 
+// Global Error Handlers
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+});
+
 // Middleware
-app.use(cors({ origin: process.env.CORS_ORIGIN || "http://localhost:5173" }));
+app.use(cors({ origin: true, credentials: true })); // More permissive for debugging
 app.use(express.json());
 app.use(auditLogMiddleware);
 
-// Diagnostic Ping Route (Added to test Vercel boot)
+// Health check (MOVE TO TOP to bypass DB check for diagnostics)
+app.get("/api/v1/health", (req: Request, res: Response) => {
+  res.json({ 
+    status: "ok", 
+    dbReady: isDbReady,
+    hasDbError: !!dbError,
+    env: process.env.NODE_ENV,
+    vercel: !!process.env.VERCEL
+  });
+});
+
+// Diagnostic Ping Route
 app.get("/api/v1/ping", (req: Request, res: Response) => {
   res.json({ status: "pong", message: "Server is alive and routing works!" });
-});
-app.post("/api/v1/ping", (req: Request, res: Response) => {
-  res.json({ status: "pong", message: "POST works too!" });
 });
 
 // DB Readiness Check
 app.use((req: Request, res: Response, next: express.NextFunction) => {
+  // Allow health and ping to pass through if they weren't matched above
+  if (req.path === "/api/v1/health" || req.path === "/api/v1/ping") {
+    return next();
+  }
+
   if (isDbReady) {
     return next();
   }
   
   if (dbError) {
-    res.status(500).json({ error: "Database initialization failed: " + (dbError.message || "Unknown error") });
+    console.error("Blocking request due to DB error:", dbError);
+    res.status(500).json({ 
+      error: "Database initialization failed", 
+      details: dbError.message || "Unknown error",
+      stack: process.env.NODE_ENV === "development" ? dbError.stack : undefined
+    });
     return;
   }
   
   res.status(503).json({ error: "Server is starting up, please try again in a moment" });
-});
-
-// Routes
-app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/departments", departmentRoutes);
-app.use("/api/v1/queue", queueRoutes);
-app.use("/api/v1/ehr", ehrRoutes);
-app.use("/api/v1/prescriptions", pharmacyRoutes);
-app.use("/api/v1/vitals", vitalsRoutes);
-
-// Health check
-app.get("/api/v1/health", (req: Request, res: Response) => {
-  res.json({ status: "ok" });
 });
 
 // Sync database and start server
@@ -136,6 +154,34 @@ let dbError: any = null;
 
 const startServer = async (): Promise<void> => {
   try {
+    console.log("Starting server initialization...");
+    
+    // Dynamic imports to prevent top-level crashes
+    const dbModule = await import("./config/database.js");
+    sequelize = dbModule.default;
+    
+    const modelsModule = await import("./models/index.js");
+    User = modelsModule.User;
+    Patient = modelsModule.Patient;
+    
+    const authUtilsModule = await import("./utils/authUtils.js");
+    hashPassword = authUtilsModule.hashPassword;
+    
+    authRoutes = (await import("./routes/authRoutes.js")).default;
+    departmentRoutes = (await import("./routes/departmentRoutes.js")).default;
+    queueRoutes = (await import("./routes/queueRoutes.js")).default;
+    ehrRoutes = (await import("./routes/ehrRoutes.js")).default;
+    pharmacyRoutes = (await import("./routes/pharmacyRoutes.js")).default;
+    vitalsRoutes = (await import("./routes/vitalsRoutes.js")).default;
+
+    // Register Routes after they are loaded
+    app.use("/api/v1/auth", authRoutes);
+    app.use("/api/v1/departments", departmentRoutes);
+    app.use("/api/v1/queue", queueRoutes);
+    app.use("/api/v1/ehr", ehrRoutes);
+    app.use("/api/v1/prescriptions", pharmacyRoutes);
+    app.use("/api/v1/vitals", vitalsRoutes);
+
     await sequelize.authenticate();
     console.log("Database connection successful");
 
@@ -143,15 +189,7 @@ const startServer = async (): Promise<void> => {
 
     if (sequelize.getDialect() === "sqlite") {
       await cleanupSqliteBackupTables();
-
-      // SQLite + Sequelize alter can fail due to stale *_backup tables;
-      // use safe sync by default in local/dev.
       await sequelize.sync();
-      if (syncAlterEnabled) {
-        console.warn(
-          "DB_SYNC_ALTER is ignored for sqlite to prevent startup failures.",
-        );
-      }
     } else {
       await sequelize.sync({ alter: syncAlterEnabled });
     }
@@ -164,11 +202,13 @@ const startServer = async (): Promise<void> => {
     isDbReady = true;
   } catch (error) {
     dbError = error;
-    console.error("Failed to start server:", error);
+    console.error("Failed to start server initialization:", error);
   } finally {
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    if (!process.env.VERCEL) {
+      app.listen(PORT, () => {
+        console.log(`Server process listening on port ${PORT}`);
+      });
+    }
   }
 };
 

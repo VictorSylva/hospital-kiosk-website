@@ -8,7 +8,7 @@ let sequelizeInstance: Sequelize | any;
 try {
   sequelizeInstance = new Sequelize({
     dialect: 'sqlite',
-    storage: process.env.DATABASE_URL || (process.env.VERCEL ? '/tmp/database.sqlite' : './database.sqlite'),
+    storage: process.env.VERCEL ? '/tmp/database.sqlite' : (process.env.DATABASE_URL || './database.sqlite'),
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
     define: {
       timestamps: true,
