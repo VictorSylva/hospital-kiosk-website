@@ -65,7 +65,7 @@ app.use((req: Request, res: Response, next: express.NextFunction) => {
     res.status(500).json({ 
       error: "Database initialization failed", 
       details: dbError.message || "Unknown error",
-      stack: process.env.NODE_ENV === "development" ? dbError.stack : undefined
+      stack: dbError.stack // Temporarily include stack trace for diagnostics
     });
     return;
   }
