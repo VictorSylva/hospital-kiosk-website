@@ -166,11 +166,9 @@ const startServer = async (): Promise<void> => {
     dbError = error;
     console.error("Failed to start server:", error);
   } finally {
-    if (!process.env.VERCEL) {
-      app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-      });
-    }
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
   }
 };
 
