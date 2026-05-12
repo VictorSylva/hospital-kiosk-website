@@ -4,7 +4,7 @@
   "description": "A comprehensive healthcare platform for managing patient appointments, electronic health records, prescriptions, and vital signs.",
   "main": "index.js",
   "scripts": {
-    "build": "npm install --prefix frontend && npm install --prefix backend && npm run build --prefix frontend && npm run build --prefix backend",
+    "build": "npm install --prefix frontend && npm install --prefix backend && npm run build --prefix frontend && npm run build --prefix backend && mkdir -p public && cp -r frontend/dist/* public/",
     "install-all": "npm install --prefix frontend && npm install --prefix backend",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
