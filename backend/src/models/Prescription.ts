@@ -11,11 +11,13 @@ export interface PrescriptionAttributes {
   dosage: string;
   frequency: string;
   duration: string;
+  route: string | null;
   status: 'pending' | 'dispensed' | 'cancelled' | 'issued';
+  issued_at: Date | null;
   notes: string | null;
 }
 
-export interface PrescriptionCreationAttributes extends Optional<PrescriptionAttributes, 'id' | 'pharmacist_id' | 'status' | 'notes' | 'drug_name'> {}
+export interface PrescriptionCreationAttributes extends Optional<PrescriptionAttributes, 'id' | 'pharmacist_id' | 'status' | 'notes' | 'drug_name' | 'route' | 'issued_at' | 'medication_name'> {}
 export interface PrescriptionInstance extends Model<PrescriptionAttributes, PrescriptionCreationAttributes>, PrescriptionAttributes {}
 
 export const Prescription = sequelize.define<PrescriptionInstance>('Prescription', {
@@ -38,7 +40,7 @@ export const Prescription = sequelize.define<PrescriptionInstance>('Prescription
   },
   medication_name: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true // Made optional for creation
   },
   drug_name: {
     type: DataTypes.STRING,
@@ -57,9 +59,17 @@ export const Prescription = sequelize.define<PrescriptionInstance>('Prescription
     type: DataTypes.STRING,
     allowNull: false
   },
+  route: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   status: {
     type: DataTypes.ENUM('pending', 'dispensed', 'cancelled', 'issued'),
     defaultValue: 'pending'
+  },
+  issued_at: {
+    type: DataTypes.DATE,
+    allowNull: true
   },
   notes: {
     type: DataTypes.TEXT,

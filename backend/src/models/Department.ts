@@ -7,10 +7,11 @@ export interface DepartmentAttributes {
   code: string | null;
   description: string | null;
   capacity: number;
+  daily_capacity: number;
   current_count: number;
 }
 
-export interface DepartmentCreationAttributes extends Optional<DepartmentAttributes, 'id' | 'code' | 'description' | 'capacity' | 'current_count'> {}
+export interface DepartmentCreationAttributes extends Optional<DepartmentAttributes, 'id' | 'code' | 'description' | 'capacity' | 'daily_capacity' | 'current_count'> {}
 export interface DepartmentInstance extends Model<DepartmentAttributes, DepartmentCreationAttributes>, DepartmentAttributes {}
 
 export const Department = sequelize.define<DepartmentInstance>('Department', {
@@ -35,6 +36,10 @@ export const Department = sequelize.define<DepartmentInstance>('Department', {
   capacity: {
     type: DataTypes.INTEGER,
     defaultValue: 50
+  },
+  daily_capacity: {
+    type: DataTypes.INTEGER,
+    defaultValue: 100
   },
   current_count: {
     type: DataTypes.INTEGER,

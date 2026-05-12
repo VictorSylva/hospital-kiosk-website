@@ -9,10 +9,11 @@ export interface EHRRecordAttributes {
   content: string;
   encrypted_content: string | null;
   iv: string | null;
+  auth_tag: string | null;
   is_confidential: boolean;
 }
 
-export interface EHRRecordCreationAttributes extends Optional<EHRRecordAttributes, 'id' | 'encrypted_content' | 'iv' | 'is_confidential'> {}
+export interface EHRRecordCreationAttributes extends Optional<EHRRecordAttributes, 'id' | 'content' | 'encrypted_content' | 'iv' | 'auth_tag' | 'is_confidential'> {}
 export interface EHRRecordInstance extends Model<EHRRecordAttributes, EHRRecordCreationAttributes>, EHRRecordAttributes {}
 
 export const EHRRecord = sequelize.define<EHRRecordInstance>('EHRRecord', {
@@ -35,13 +36,17 @@ export const EHRRecord = sequelize.define<EHRRecordInstance>('EHRRecord', {
   },
   content: {
     type: DataTypes.TEXT,
-    allowNull: false
+    allowNull: true // Made optional for creation
   },
   encrypted_content: {
     type: DataTypes.TEXT,
     allowNull: true
   },
   iv: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  auth_tag: {
     type: DataTypes.STRING,
     allowNull: true
   },

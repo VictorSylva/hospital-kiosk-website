@@ -10,10 +10,11 @@ export interface AppointmentAttributes {
   scheduled_at: Date | null;
   status: 'booked' | 'scheduled' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled';
   reason: string | null;
+  reason_for_visit: string | null;
   notes: string | null;
 }
 
-export interface AppointmentCreationAttributes extends Optional<AppointmentAttributes, 'id' | 'status' | 'reason' | 'notes' | 'scheduled_at'> {}
+export interface AppointmentCreationAttributes extends Optional<AppointmentAttributes, 'id' | 'status' | 'reason' | 'notes' | 'scheduled_at' | 'reason_for_visit' | 'appointment_date'> {}
 export interface AppointmentInstance extends Model<AppointmentAttributes, AppointmentCreationAttributes>, AppointmentAttributes {}
 
 export const Appointment = sequelize.define<AppointmentInstance>('Appointment', {
@@ -36,7 +37,7 @@ export const Appointment = sequelize.define<AppointmentInstance>('Appointment', 
   },
   appointment_date: {
     type: DataTypes.DATE,
-    allowNull: false
+    allowNull: true // Made optional for creation
   },
   scheduled_at: {
     type: DataTypes.DATE,
@@ -47,6 +48,10 @@ export const Appointment = sequelize.define<AppointmentInstance>('Appointment', 
     defaultValue: 'scheduled'
   },
   reason: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  reason_for_visit: {
     type: DataTypes.TEXT,
     allowNull: true
   },
