@@ -1,16 +1,12 @@
 {
-  "rewrites": [
-    {
-      "source": "/_/backend/(.*)",
-      "destination": "/api/index"
+  "experimentalServices": {
+    "frontend": {
+      "entrypoint": "frontend",
+      "routePrefix": "/"
     },
-    {
-      "source": "/assets/(.*)",
-      "destination": "/frontend/dist/assets/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/frontend/dist/index.html"
+    "backend": {
+      "entrypoint": "backend",
+      "routePrefix": "/_/backend"
     }
-  ]
+  }
 }

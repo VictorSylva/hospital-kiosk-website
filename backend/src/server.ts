@@ -204,11 +204,9 @@ const startServer = async (): Promise<void> => {
     dbError = error;
     console.error("Failed to start server initialization:", error);
   } finally {
-    if (!process.env.VERCEL) {
-      app.listen(PORT, () => {
-        console.log(`Server process listening on port ${PORT}`);
-      });
-    }
+    app.listen(PORT, () => {
+      console.log(`Server process listening on port ${PORT}`);
+    });
   }
 };
 
