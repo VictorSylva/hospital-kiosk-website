@@ -4,6 +4,7 @@ import { sequelize } from '../config/database.js';
 export interface InventoryAttributes {
   id: string;
   item_name: string;
+  drug_name: string;
   category: string;
   quantity: number;
   unit: string;
@@ -11,7 +12,7 @@ export interface InventoryAttributes {
   expiry_date: Date | null;
 }
 
-export interface InventoryCreationAttributes extends Optional<InventoryAttributes, 'id' | 'quantity' | 'reorder_level' | 'expiry_date'> {}
+export interface InventoryCreationAttributes extends Optional<InventoryAttributes, 'id' | 'quantity' | 'reorder_level' | 'expiry_date' | 'drug_name'> {}
 export interface InventoryInstance extends Model<InventoryAttributes, InventoryCreationAttributes>, InventoryAttributes {}
 
 export const Inventory = sequelize.define<InventoryInstance>('Inventory', {
@@ -22,8 +23,12 @@ export const Inventory = sequelize.define<InventoryInstance>('Inventory', {
   },
   item_name: {
     type: DataTypes.STRING,
+    allowNull: false
+  },
+  drug_name: {
+    type: DataTypes.STRING,
     allowNull: false,
-    unique: true
+    defaultValue: ''
   },
   category: {
     type: DataTypes.STRING,

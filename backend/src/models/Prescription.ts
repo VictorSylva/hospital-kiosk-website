@@ -10,7 +10,7 @@ export interface PrescriptionAttributes {
   dosage: string;
   frequency: string;
   duration: string;
-  status: 'pending' | 'dispensed' | 'cancelled';
+  status: 'pending' | 'dispensed' | 'cancelled' | 'issued';
   notes: string | null;
 }
 
@@ -52,7 +52,7 @@ export const Prescription = sequelize.define<PrescriptionInstance>('Prescription
     allowNull: false
   },
   status: {
-    type: DataTypes.ENUM('pending', 'dispensed', 'cancelled'),
+    type: DataTypes.ENUM('pending', 'dispensed', 'cancelled', 'issued'),
     defaultValue: 'pending'
   },
   notes: {

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { User, Patient } from "../models/index.js";
-import sequelize from "../config/database.js";
+import { sequelize } from "../config/database.js";
 import {
   hashPassword,
   comparePassword,

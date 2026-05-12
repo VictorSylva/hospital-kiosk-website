@@ -6,7 +6,7 @@ import {
   QueueEntry,
   User,
 } from "../models/index.js";
-import sequelize from "../config/database.js";
+import { sequelize } from "../config/database.js";
 import { Op, ValidationError, ForeignKeyConstraintError } from "sequelize";
 
 // Extended request interface for custom auth and auditLog properties
