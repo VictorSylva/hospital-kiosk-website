@@ -7,6 +7,7 @@ export interface PrescriptionAttributes {
   doctor_id: string;
   pharmacist_id: string | null;
   medication_name: string;
+  drug_name: string;
   dosage: string;
   frequency: string;
   duration: string;
@@ -14,7 +15,7 @@ export interface PrescriptionAttributes {
   notes: string | null;
 }
 
-export interface PrescriptionCreationAttributes extends Optional<PrescriptionAttributes, 'id' | 'pharmacist_id' | 'status' | 'notes'> {}
+export interface PrescriptionCreationAttributes extends Optional<PrescriptionAttributes, 'id' | 'pharmacist_id' | 'status' | 'notes' | 'drug_name'> {}
 export interface PrescriptionInstance extends Model<PrescriptionAttributes, PrescriptionCreationAttributes>, PrescriptionAttributes {}
 
 export const Prescription = sequelize.define<PrescriptionInstance>('Prescription', {
@@ -38,6 +39,11 @@ export const Prescription = sequelize.define<PrescriptionInstance>('Prescription
   medication_name: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  drug_name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: ''
   },
   dosage: {
     type: DataTypes.STRING,

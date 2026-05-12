@@ -8,11 +8,12 @@ export interface AuditLogAttributes {
   module: string;
   table_name: string | null;
   record_id: string | null;
+  status: string | null;
   details: string | null;
   ip_address: string | null;
 }
 
-export interface AuditLogCreationAttributes extends Optional<AuditLogAttributes, 'id' | 'user_id' | 'table_name' | 'record_id' | 'details' | 'ip_address'> {}
+export interface AuditLogCreationAttributes extends Optional<AuditLogAttributes, 'id' | 'user_id' | 'table_name' | 'record_id' | 'status' | 'details' | 'ip_address'> {}
 export interface AuditLogInstance extends Model<AuditLogAttributes, AuditLogCreationAttributes>, AuditLogAttributes {}
 
 export const AuditLog = sequelize.define<AuditLogInstance>('AuditLog', {
@@ -39,6 +40,10 @@ export const AuditLog = sequelize.define<AuditLogInstance>('AuditLog', {
   },
   record_id: {
     type: DataTypes.UUID,
+    allowNull: true
+  },
+  status: {
+    type: DataTypes.STRING,
     allowNull: true
   },
   details: {

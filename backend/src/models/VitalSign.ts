@@ -16,9 +16,10 @@ export interface VitalSignAttributes {
   oxygen_saturation: number | null;
   bmi: number | null;
   is_abnormal: boolean;
+  abnormal_flags: string | null;
 }
 
-export interface VitalSignCreationAttributes extends Optional<VitalSignAttributes, 'id' | 'weight' | 'height' | 'blood_pressure_systolic' | 'blood_pressure_diastolic' | 'temperature' | 'heart_rate' | 'spo2' | 'respiratory_rate' | 'oxygen_saturation' | 'bmi' | 'is_abnormal'> {}
+export interface VitalSignCreationAttributes extends Optional<VitalSignAttributes, 'id' | 'weight' | 'height' | 'blood_pressure_systolic' | 'blood_pressure_diastolic' | 'temperature' | 'heart_rate' | 'spo2' | 'respiratory_rate' | 'oxygen_saturation' | 'bmi' | 'is_abnormal' | 'abnormal_flags'> {}
 export interface VitalSignInstance extends Model<VitalSignAttributes, VitalSignCreationAttributes>, VitalSignAttributes {}
 
 export const VitalSign = sequelize.define<VitalSignInstance>('VitalSign', {
@@ -78,6 +79,10 @@ export const VitalSign = sequelize.define<VitalSignInstance>('VitalSign', {
   is_abnormal: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  abnormal_flags: {
+    type: DataTypes.TEXT,
+    allowNull: true
   }
 }, {
   tableName: 'vital_signs',

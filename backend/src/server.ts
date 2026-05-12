@@ -42,7 +42,7 @@ const checkDbReady = (req: Request, res: Response, next: NextFunction) => {
     res.status(500).json({ 
       error: "Database initialization failed", 
       details: dbError.message || "Unknown error",
-      stack: dbError.stack // Temporarily include stack trace for diagnostics
+      stack: dbError.stack
     });
     return;
   }
@@ -58,8 +58,6 @@ const checkDbReady = (req: Request, res: Response, next: NextFunction) => {
 app.use(checkDbReady);
 
 // ASYNC INITIALIZATION WRAPPER
-// This allows the server to bind to the PORT instantly, preventing 500 crashes
-// while the heavy database logic runs in the background.
 const startServer = async () => {
   try {
     console.log("Starting server initialization...");
@@ -70,7 +68,6 @@ const startServer = async () => {
     app.use(auditLogMiddleware); 
 
     const dbModule = await import("./config/database.js");
-    // Use the named export 'sequelize' from database.js
     const sequelizeInstance = dbModule.sequelize;
     
     const modelsModule = await import("./models/index.js");
@@ -78,7 +75,6 @@ const startServer = async () => {
     Patient = modelsModule.Patient;
     const initModels = modelsModule.initModels;
     
-    // Initialize associations only after models are loaded
     if (initModels) initModels();
     
     const authUtilsModule = await import("./utils/authUtils.js");
@@ -89,7 +85,6 @@ const startServer = async () => {
     await sequelizeInstance.authenticate();
     
     if (sequelizeInstance.getDialect() === "sqlite") {
-      // Create tables if they don't exist
       await sequelizeInstance.sync();
     }
     
@@ -98,16 +93,14 @@ const startServer = async () => {
     const departmentRoutes = await import("./routes/departmentRoutes.js");
     const vitalsRoutes = await import("./routes/vitalsRoutes.js");
     const queueRoutes = await import("./routes/queueRoutes.js");
-    const prescriptionRoutes = await import("./routes/prescriptionRoutes.js");
-    const inventoryRoutes = await import("./routes/inventoryRoutes.js");
+    const pharmacyRoutes = await import("./routes/pharmacyRoutes.js");
     const ehrRoutes = await import("./routes/ehrRoutes.js");
 
     app.use("/api/v1/auth", authRoutes.default);
     app.use("/api/v1/departments", departmentRoutes.default);
     app.use("/api/v1/vitals", vitalsRoutes.default);
     app.use("/api/v1/queue", queueRoutes.default);
-    app.use("/api/v1/prescriptions", prescriptionRoutes.default);
-    app.use("/api/v1/inventory", inventoryRoutes.default);
+    app.use("/api/v1/pharmacy", pharmacyRoutes.default);
     app.use("/api/v1/ehr", ehrRoutes.default);
 
     console.log("✅ Server initialization complete.");
@@ -124,7 +117,6 @@ const startServer = async () => {
   }
 };
 
-// Start the background initialization
 startServer();
 
 export default app;

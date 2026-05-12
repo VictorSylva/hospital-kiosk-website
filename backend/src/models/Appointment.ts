@@ -7,12 +7,13 @@ export interface AppointmentAttributes {
   doctor_id: string;
   department_id: string;
   appointment_date: Date;
+  scheduled_at: Date | null;
   status: 'booked' | 'scheduled' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled';
   reason: string | null;
   notes: string | null;
 }
 
-export interface AppointmentCreationAttributes extends Optional<AppointmentAttributes, 'id' | 'status' | 'reason' | 'notes'> {}
+export interface AppointmentCreationAttributes extends Optional<AppointmentAttributes, 'id' | 'status' | 'reason' | 'notes' | 'scheduled_at'> {}
 export interface AppointmentInstance extends Model<AppointmentAttributes, AppointmentCreationAttributes>, AppointmentAttributes {}
 
 export const Appointment = sequelize.define<AppointmentInstance>('Appointment', {
@@ -36,6 +37,10 @@ export const Appointment = sequelize.define<AppointmentInstance>('Appointment', 
   appointment_date: {
     type: DataTypes.DATE,
     allowNull: false
+  },
+  scheduled_at: {
+    type: DataTypes.DATE,
+    allowNull: true
   },
   status: {
     type: DataTypes.ENUM('booked', 'scheduled', 'checked-in', 'in-progress', 'completed', 'cancelled'),

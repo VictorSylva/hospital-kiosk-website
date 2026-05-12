@@ -4,12 +4,13 @@ import { sequelize } from '../config/database.js';
 export interface DepartmentAttributes {
   id: string;
   name: string;
+  code: string | null;
   description: string | null;
   capacity: number;
   current_count: number;
 }
 
-export interface DepartmentCreationAttributes extends Optional<DepartmentAttributes, 'id' | 'description' | 'capacity' | 'current_count'> {}
+export interface DepartmentCreationAttributes extends Optional<DepartmentAttributes, 'id' | 'code' | 'description' | 'capacity' | 'current_count'> {}
 export interface DepartmentInstance extends Model<DepartmentAttributes, DepartmentCreationAttributes>, DepartmentAttributes {}
 
 export const Department = sequelize.define<DepartmentInstance>('Department', {
@@ -22,6 +23,10 @@ export const Department = sequelize.define<DepartmentInstance>('Department', {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true
+  },
+  code: {
+    type: DataTypes.STRING,
+    allowNull: true
   },
   description: {
     type: DataTypes.TEXT,
