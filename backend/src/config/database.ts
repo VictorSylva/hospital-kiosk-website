@@ -1,31 +1,52 @@
-import { Sequelize } from 'sequelize';
+import { Sequelize, Options } from 'sequelize';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-let sequelizeInstance: Sequelize | any;
+let sequelizeInstance: Sequelize;
+
+const databaseUrl = process.env.DATABASE_URL || '';
+const isPostgres = databaseUrl.startsWith('postgres://') || databaseUrl.startsWith('postgresql://');
+
+const baseOptions: Options = {
+  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+  define: {
+    timestamps: true,
+    underscored: true
+  }
+};
 
 try {
-  sequelizeInstance = new Sequelize({
-    dialect: 'sqlite',
-    storage: process.env.VERCEL ? '/tmp/database.sqlite' : (process.env.DATABASE_URL || './database.sqlite'),
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
-    define: {
-      timestamps: true,
-      underscored: true
-    }
-  });
+  if (isPostgres) {
+    console.log('Detected PostgreSQL connection string. Connecting to Postgres...');
+    sequelizeInstance = new Sequelize(databaseUrl, {
+      ...baseOptions,
+      dialect: 'postgres',
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false // Necessary for many hosted providers like Supabase/Neon
+        }
+      }
+    });
+  } else {
+    console.log('Using SQLite database...');
+    sequelizeInstance = new Sequelize({
+      ...baseOptions,
+      dialect: 'sqlite',
+      storage: process.env.VERCEL ? '/tmp/database.sqlite' : (databaseUrl || './database.sqlite')
+    });
+  }
 } catch (error: any) {
-  console.error("CRITICAL: Failed to initialize Sequelize:", error);
-  // Provide a dummy object so the top-level import doesn't crash the server.
-  // The error will be thrown when server.ts calls authenticate().
+  console.error("CRITICAL: Failed to initialize Sequelize instance:", error);
+  // Provide a dummy object to prevent top-level crashes
   sequelizeInstance = {
     authenticate: async () => { throw error; },
-    getDialect: () => 'sqlite',
+    getDialect: () => (isPostgres ? 'postgres' : 'sqlite'),
     sync: async () => { throw error; },
     query: async () => { throw error; },
     define: () => ({})
   } as unknown as Sequelize;
 }
 
-export const sequelize = sequelizeInstance as Sequelize;
+export const sequelize = sequelizeInstance;

@@ -84,9 +84,8 @@ const startServer = async () => {
     console.log("Connecting to database...");
     await sequelizeInstance.authenticate();
     
-    if (sequelizeInstance.getDialect() === "sqlite") {
-      await sequelizeInstance.sync();
-    }
+    // Create tables if they don't exist
+    await sequelizeInstance.sync();
     
     // Register Routes dynamically
     const authRoutes = await import("./routes/authRoutes.js");
