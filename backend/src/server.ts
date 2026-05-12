@@ -166,6 +166,10 @@ const startServer = async (): Promise<void> => {
     const modelsModule = await import("./models/index.js");
     User = modelsModule.User;
     Patient = modelsModule.Patient;
+    const initModels = modelsModule.initModels;
+    
+    // Initialize associations only after models are loaded
+    if (initModels) initModels();
     
     const authUtilsModule = await import("./utils/authUtils.js");
     hashPassword = authUtilsModule.hashPassword;
