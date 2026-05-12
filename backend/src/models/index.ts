@@ -1,13 +1,13 @@
-import User from './User.js';
-import Patient from './Patient.js';
-import Department from './Department.js';
-import Appointment from './Appointment.js';
-import QueueEntry from './QueueEntry.js';
-import EHRRecord from './EHRRecord.js';
-import AuditLog from './AuditLog.js';
-import Prescription from './Prescription.js';
-import Inventory from './Inventory.js';
-import VitalSign from './VitalSign.js';
+import { User } from './User.js';
+import { Patient } from './Patient.js';
+import { Department } from './Department.js';
+import { Appointment } from './Appointment.js';
+import { QueueEntry } from './QueueEntry.js';
+import { EHRRecord } from './EHRRecord.js';
+import { AuditLog } from './AuditLog.js';
+import { Prescription } from './Prescription.js';
+import { Inventory } from './Inventory.js';
+import { VitalSign } from './VitalSign.js';
 
 // Define associations in a function to prevent circular dependency issues
 export const initModels = () => {
@@ -51,4 +51,3 @@ export {
   Inventory,
   VitalSign
 };
-

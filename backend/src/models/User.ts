@@ -16,7 +16,7 @@ export interface UserAttributes {
 export interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'role' | 'is_active' | 'failed_login_attempts' | 'locked_until' | 'last_login'> {}
 export interface UserInstance extends Model<UserAttributes, UserCreationAttributes>, UserAttributes {}
 
-const User = sequelize.define<UserInstance>('User', {
+export const User = sequelize.define<UserInstance>('User', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -60,5 +60,3 @@ const User = sequelize.define<UserInstance>('User', {
   tableName: 'users',
   timestamps: true
 });
-
-export default User;

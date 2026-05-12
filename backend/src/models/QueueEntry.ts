@@ -3,28 +3,21 @@ import sequelize from '../config/database.js';
 
 export interface QueueEntryAttributes {
   id: string;
-  appointment_id: string | null;
   patient_id: string;
   department_id: string;
-  token_number: string;
-  priority: 'emergency' | 'elderly_disabled' | 'standard';
-  status: 'waiting' | 'called' | 'in_progress' | 'completed' | 'no_show';
-  called_at: Date | null;
-  completed_at: Date | null;
+  appointment_id: string | null;
+  status: 'waiting' | 'called' | 'in-progress' | 'completed';
+  queue_number: string;
 }
 
-export interface QueueEntryCreationAttributes extends Optional<QueueEntryAttributes, 'id' | 'appointment_id' | 'priority' | 'status' | 'called_at' | 'completed_at'> {}
+export interface QueueEntryCreationAttributes extends Optional<QueueEntryAttributes, 'id' | 'appointment_id' | 'status'> {}
 export interface QueueEntryInstance extends Model<QueueEntryAttributes, QueueEntryCreationAttributes>, QueueEntryAttributes {}
 
-const QueueEntry = sequelize.define<QueueEntryInstance>('QueueEntry', {
+export const QueueEntry = sequelize.define<QueueEntryInstance>('QueueEntry', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
-  },
-  appointment_id: {
-    type: DataTypes.UUID,
-    allowNull: true
   },
   patient_id: {
     type: DataTypes.UUID,
@@ -34,29 +27,19 @@ const QueueEntry = sequelize.define<QueueEntryInstance>('QueueEntry', {
     type: DataTypes.UUID,
     allowNull: false
   },
-  token_number: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  priority: {
-    type: DataTypes.ENUM('emergency', 'elderly_disabled', 'standard'),
-    defaultValue: 'standard'
+  appointment_id: {
+    type: DataTypes.UUID,
+    allowNull: true
   },
   status: {
-    type: DataTypes.ENUM('waiting', 'called', 'in_progress', 'completed', 'no_show'),
+    type: DataTypes.ENUM('waiting', 'called', 'in-progress', 'completed'),
     defaultValue: 'waiting'
   },
-  called_at: {
-    type: DataTypes.DATE,
-    allowNull: true
-  },
-  completed_at: {
-    type: DataTypes.DATE,
-    allowNull: true
+  queue_number: {
+    type: DataTypes.STRING,
+    allowNull: false
   }
 }, {
   tableName: 'queue_entries',
   timestamps: true
 });
-
-export default QueueEntry;

@@ -3,58 +3,49 @@ import sequelize from '../config/database.js';
 
 export interface InventoryAttributes {
   id: string;
-  drug_name: string;
+  item_name: string;
+  category: string;
   quantity: number;
   unit: string;
-  expiry_date: Date;
-  reorder_threshold: number;
-  batch_number: string | null;
-  supplier: string | null;
+  reorder_level: number;
+  expiry_date: Date | null;
 }
 
-export interface InventoryCreationAttributes extends Optional<InventoryAttributes, 'id' | 'quantity' | 'reorder_threshold' | 'batch_number' | 'supplier'> {}
+export interface InventoryCreationAttributes extends Optional<InventoryAttributes, 'id' | 'quantity' | 'reorder_level' | 'expiry_date'> {}
 export interface InventoryInstance extends Model<InventoryAttributes, InventoryCreationAttributes>, InventoryAttributes {}
 
-const Inventory = sequelize.define<InventoryInstance>('Inventory', {
+export const Inventory = sequelize.define<InventoryInstance>('Inventory', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true
   },
-  drug_name: {
+  item_name: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true
   },
+  category: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
   quantity: {
     type: DataTypes.INTEGER,
-    allowNull: false,
     defaultValue: 0
   },
   unit: {
     type: DataTypes.STRING,
     allowNull: false
   },
-  expiry_date: {
-    type: DataTypes.DATE,
-    allowNull: false
-  },
-  reorder_threshold: {
+  reorder_level: {
     type: DataTypes.INTEGER,
-    allowNull: false,
     defaultValue: 10
   },
-  batch_number: {
-    type: DataTypes.STRING,
-    allowNull: true
-  },
-  supplier: {
-    type: DataTypes.STRING,
+  expiry_date: {
+    type: DataTypes.DATE,
     allowNull: true
   }
 }, {
   tableName: 'inventory',
   timestamps: true
 });
-
-export default Inventory;

@@ -4,18 +4,18 @@ import sequelize from '../config/database.js';
 export interface AppointmentAttributes {
   id: string;
   patient_id: string;
-  doctor_id: string | null;
+  doctor_id: string;
   department_id: string;
-  scheduled_at: Date;
-  status: 'booked' | 'checked_in' | 'in_consultation' | 'completed' | 'no_show' | 'cancelled';
+  appointment_date: Date;
+  status: 'scheduled' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled';
+  reason: string | null;
   notes: string | null;
-  reason_for_visit: string | null;
 }
 
-export interface AppointmentCreationAttributes extends Optional<AppointmentAttributes, 'id' | 'doctor_id' | 'status' | 'notes' | 'reason_for_visit'> {}
+export interface AppointmentCreationAttributes extends Optional<AppointmentAttributes, 'id' | 'status' | 'reason' | 'notes'> {}
 export interface AppointmentInstance extends Model<AppointmentAttributes, AppointmentCreationAttributes>, AppointmentAttributes {}
 
-const Appointment = sequelize.define<AppointmentInstance>('Appointment', {
+export const Appointment = sequelize.define<AppointmentInstance>('Appointment', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -27,31 +27,29 @@ const Appointment = sequelize.define<AppointmentInstance>('Appointment', {
   },
   doctor_id: {
     type: DataTypes.UUID,
-    allowNull: true
+    allowNull: false
   },
   department_id: {
     type: DataTypes.UUID,
     allowNull: false
   },
-  scheduled_at: {
+  appointment_date: {
     type: DataTypes.DATE,
     allowNull: false
   },
   status: {
-    type: DataTypes.ENUM('booked', 'checked_in', 'in_consultation', 'completed', 'no_show', 'cancelled'),
-    defaultValue: 'booked'
+    type: DataTypes.ENUM('scheduled', 'checked-in', 'in-progress', 'completed', 'cancelled'),
+    defaultValue: 'scheduled'
   },
-  notes: {
+  reason: {
     type: DataTypes.TEXT,
     allowNull: true
   },
-  reason_for_visit: {
-    type: DataTypes.STRING,
+  notes: {
+    type: DataTypes.TEXT,
     allowNull: true
   }
 }, {
   tableName: 'appointments',
   timestamps: true
 });
-
-export default Appointment;

@@ -4,15 +4,15 @@ import sequelize from '../config/database.js';
 export interface DepartmentAttributes {
   id: string;
   name: string;
-  code: string;
-  daily_capacity: number;
   description: string | null;
+  capacity: number;
+  current_count: number;
 }
 
-export interface DepartmentCreationAttributes extends Optional<DepartmentAttributes, 'id' | 'daily_capacity' | 'description'> {}
+export interface DepartmentCreationAttributes extends Optional<DepartmentAttributes, 'id' | 'description' | 'capacity' | 'current_count'> {}
 export interface DepartmentInstance extends Model<DepartmentAttributes, DepartmentCreationAttributes>, DepartmentAttributes {}
 
-const Department = sequelize.define<DepartmentInstance>('Department', {
+export const Department = sequelize.define<DepartmentInstance>('Department', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -20,24 +20,22 @@ const Department = sequelize.define<DepartmentInstance>('Department', {
   },
   name: {
     type: DataTypes.STRING,
-    allowNull: false
-  },
-  code: {
-    type: DataTypes.STRING,
-    unique: true,
-    allowNull: false
-  },
-  daily_capacity: {
-    type: DataTypes.INTEGER,
-    defaultValue: 50
+    allowNull: false,
+    unique: true
   },
   description: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  capacity: {
+    type: DataTypes.INTEGER,
+    defaultValue: 50
+  },
+  current_count: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   }
 }, {
   tableName: 'departments',
   timestamps: true
 });
-
-export default Department;

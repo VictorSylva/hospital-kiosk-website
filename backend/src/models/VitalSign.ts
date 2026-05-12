@@ -4,23 +4,21 @@ import sequelize from '../config/database.js';
 export interface VitalSignAttributes {
   id: string;
   patient_id: string;
-  temperature: number | null;
+  recorded_by: string;
   weight: number | null;
+  height: number | null;
   blood_pressure_systolic: number | null;
   blood_pressure_diastolic: number | null;
-  spo2: number | null;
+  temperature: number | null;
   heart_rate: number | null;
-  respiratory_rate: number | null;
-  is_abnormal: boolean;
-  abnormal_flags: any | null;
-  recorded_by: string;
-  captured_at: Date;
+  oxygen_saturation: number | null;
+  bmi: number | null;
 }
 
-export interface VitalSignCreationAttributes extends Optional<VitalSignAttributes, 'id' | 'temperature' | 'weight' | 'blood_pressure_systolic' | 'blood_pressure_diastolic' | 'spo2' | 'heart_rate' | 'respiratory_rate' | 'is_abnormal' | 'abnormal_flags' | 'captured_at'> {}
+export interface VitalSignCreationAttributes extends Optional<VitalSignAttributes, 'id' | 'weight' | 'height' | 'blood_pressure_systolic' | 'blood_pressure_diastolic' | 'temperature' | 'heart_rate' | 'oxygen_saturation' | 'bmi'> {}
 export interface VitalSignInstance extends Model<VitalSignAttributes, VitalSignCreationAttributes>, VitalSignAttributes {}
 
-const VitalSign = sequelize.define<VitalSignInstance>('VitalSign', {
+export const VitalSign = sequelize.define<VitalSignInstance>('VitalSign', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -30,12 +28,16 @@ const VitalSign = sequelize.define<VitalSignInstance>('VitalSign', {
     type: DataTypes.UUID,
     allowNull: false
   },
-  temperature: {
-    type: DataTypes.FLOAT,
-    allowNull: true
+  recorded_by: {
+    type: DataTypes.UUID,
+    allowNull: false
   },
   weight: {
-    type: DataTypes.FLOAT,
+    type: DataTypes.DECIMAL(5, 2),
+    allowNull: true
+  },
+  height: {
+    type: DataTypes.DECIMAL(5, 2),
     allowNull: true
   },
   blood_pressure_systolic: {
@@ -46,38 +48,23 @@ const VitalSign = sequelize.define<VitalSignInstance>('VitalSign', {
     type: DataTypes.INTEGER,
     allowNull: true
   },
-  spo2: {
-    type: DataTypes.FLOAT,
+  temperature: {
+    type: DataTypes.DECIMAL(4, 1),
     allowNull: true
   },
   heart_rate: {
     type: DataTypes.INTEGER,
     allowNull: true
   },
-  respiratory_rate: {
+  oxygen_saturation: {
     type: DataTypes.INTEGER,
     allowNull: true
   },
-  is_abnormal: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
-  },
-  abnormal_flags: {
-    type: DataTypes.JSON,
+  bmi: {
+    type: DataTypes.DECIMAL(4, 1),
     allowNull: true
-  },
-  recorded_by: {
-    type: DataTypes.UUID,
-    allowNull: false
-  },
-  captured_at: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW
   }
 }, {
   tableName: 'vital_signs',
   timestamps: true
 });
-
-export default VitalSign;

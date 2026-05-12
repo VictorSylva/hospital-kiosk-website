@@ -14,7 +14,7 @@ export interface PatientAttributes {
 export interface PatientCreationAttributes extends Optional<PatientAttributes, 'id' | 'national_id' | 'consent_given_at' | 'phone' | 'address'> {}
 export interface PatientInstance extends Model<PatientAttributes, PatientCreationAttributes>, PatientAttributes {}
 
-const Patient = sequelize.define<PatientInstance>('Patient', {
+export const Patient = sequelize.define<PatientInstance>('Patient', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -50,5 +50,3 @@ const Patient = sequelize.define<PatientInstance>('Patient', {
   tableName: 'patients',
   timestamps: true
 });
-
-export default Patient;
