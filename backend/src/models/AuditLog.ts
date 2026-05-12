@@ -13,7 +13,7 @@ export interface AuditLogAttributes {
   ip_address: string | null;
 }
 
-export interface AuditLogCreationAttributes extends Optional<AuditLogAttributes, 'id' | 'user_id' | 'table_name' | 'record_id' | 'status' | 'details' | 'ip_address'> {}
+export interface AuditLogCreationAttributes extends Optional<AuditLogAttributes, 'id' | 'user_id' | 'module' | 'table_name' | 'record_id' | 'status' | 'details' | 'ip_address'> {}
 export interface AuditLogInstance extends Model<AuditLogAttributes, AuditLogCreationAttributes>, AuditLogAttributes {}
 
 export const AuditLog = sequelize.define<AuditLogInstance>('AuditLog', {
@@ -32,7 +32,7 @@ export const AuditLog = sequelize.define<AuditLogInstance>('AuditLog', {
   },
   module: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true // Made optional for compatibility
   },
   table_name: {
     type: DataTypes.STRING,

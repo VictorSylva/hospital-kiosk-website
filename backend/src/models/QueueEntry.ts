@@ -12,7 +12,7 @@ export interface QueueEntryAttributes {
   priority: number;
 }
 
-export interface QueueEntryCreationAttributes extends Optional<QueueEntryAttributes, 'id' | 'appointment_id' | 'status' | 'token_number' | 'priority'> {}
+export interface QueueEntryCreationAttributes extends Optional<QueueEntryAttributes, 'id' | 'appointment_id' | 'status' | 'queue_number' | 'token_number' | 'priority'> {}
 export interface QueueEntryInstance extends Model<QueueEntryAttributes, QueueEntryCreationAttributes>, QueueEntryAttributes {}
 
 export const QueueEntry = sequelize.define<QueueEntryInstance>('QueueEntry', {
@@ -39,7 +39,7 @@ export const QueueEntry = sequelize.define<QueueEntryInstance>('QueueEntry', {
   },
   queue_number: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true // Made optional for creation
   },
   token_number: {
     type: DataTypes.STRING,
