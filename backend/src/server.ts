@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { auditLogMiddleware } from "./middleware/auditLog.js";
 
 // We will dynamically import these inside startServer to prevent top-level crashes
 let User: any;
@@ -14,6 +13,7 @@ let ehrRoutes: any;
 let pharmacyRoutes: any;
 let vitalsRoutes: any;
 let hashPassword: any;
+let auditLogMiddleware: any;
 
 
 dotenv.config();
@@ -32,7 +32,6 @@ process.on("uncaughtException", (error) => {
 // Middleware
 app.use(cors({ origin: true, credentials: true })); // More permissive for debugging
 app.use(express.json());
-app.use(auditLogMiddleware);
 
 // Health check (MOVE TO TOP to bypass DB check for diagnostics)
 app.get("/api/v1/health", (req: Request, res: Response) => {
@@ -157,6 +156,10 @@ const startServer = async (): Promise<void> => {
     console.log("Starting server initialization...");
     
     // Dynamic imports to prevent top-level crashes
+    const auditModule = await import("./middleware/auditLog.js");
+    auditLogMiddleware = auditModule.auditLogMiddleware;
+    app.use(auditLogMiddleware); 
+
     const dbModule = await import("./config/database.js");
     sequelize = dbModule.default;
     
@@ -204,9 +207,11 @@ const startServer = async (): Promise<void> => {
     dbError = error;
     console.error("Failed to start server initialization:", error);
   } finally {
-    app.listen(PORT, () => {
-      console.log(`Server process listening on port ${PORT}`);
-    });
+    if (!process.env.VERCEL) {
+      app.listen(PORT, () => {
+        console.log(`Server process listening on port ${PORT}`);
+      });
+    }
   }
 };
 
