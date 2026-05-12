@@ -8,7 +8,7 @@ export interface QueueEntryAttributes {
   appointment_id: string | null;
   status: 'waiting' | 'called' | 'in-progress' | 'completed';
   queue_number: string;
-  token_number: number;
+  token_number: string;
 }
 
 export interface QueueEntryCreationAttributes extends Optional<QueueEntryAttributes, 'id' | 'appointment_id' | 'status' | 'token_number'> {}
@@ -41,9 +41,8 @@ export const QueueEntry = sequelize.define<QueueEntryInstance>('QueueEntry', {
     allowNull: false
   },
   token_number: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    autoIncrement: true
+    type: DataTypes.STRING,
+    allowNull: false
   }
 }, {
   tableName: 'queue_entries',

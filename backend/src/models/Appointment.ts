@@ -7,7 +7,7 @@ export interface AppointmentAttributes {
   doctor_id: string;
   department_id: string;
   appointment_date: Date;
-  status: 'scheduled' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled';
+  status: 'booked' | 'scheduled' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled';
   reason: string | null;
   notes: string | null;
 }
@@ -38,7 +38,7 @@ export const Appointment = sequelize.define<AppointmentInstance>('Appointment', 
     allowNull: false
   },
   status: {
-    type: DataTypes.ENUM('scheduled', 'checked-in', 'in-progress', 'completed', 'cancelled'),
+    type: DataTypes.ENUM('booked', 'scheduled', 'checked-in', 'in-progress', 'completed', 'cancelled'),
     defaultValue: 'scheduled'
   },
   reason: {

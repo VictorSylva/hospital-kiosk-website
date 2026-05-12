@@ -1,33 +1,22 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-
-// We will dynamically import these inside startServer to prevent top-level crashes
-let User: any;
-let Patient: any;
-let sequelize: any;
-let authRoutes: any;
-let departmentRoutes: any;
-let queueRoutes: any;
-let ehrRoutes: any;
-let pharmacyRoutes: any;
-let vitalsRoutes: any;
-let hashPassword: any;
-let auditLogMiddleware: any;
-
+import { sequelize } from "./config/database.js";
 
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Global Error Handlers
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
-});
+// Global error/readiness state
+let dbError: any = null;
+let isDbReady = false;
 
-process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception:", error);
-});
+// Shared model references to be populated after dynamic import
+let User: any;
+let Patient: any;
+let hashPassword: any;
+let auditLogMiddleware: any;
 
 // Middleware
 app.use(cors({ origin: true, credentials: true })); // More permissive for debugging
@@ -35,30 +24,18 @@ app.use(express.json());
 
 // Health check (MOVE TO TOP to bypass DB check for diagnostics)
 app.get("/api/v1/health", (req: Request, res: Response) => {
-  res.json({ 
-    status: "ok", 
-    dbReady: isDbReady,
-    hasDbError: !!dbError,
-    env: process.env.NODE_ENV,
-    vercel: !!process.env.VERCEL
+  res.json({
+    status: isDbReady ? "healthy" : "initializing",
+    database: isDbReady ? "connected" : "pending",
+    vercel: !!process.env.VERCEL,
+    error: dbError ? { message: dbError.message, stack: dbError.stack } : null,
+    timestamp: new Date().toISOString()
   });
 });
 
-// Diagnostic Ping Route
-app.get("/api/v1/ping", (req: Request, res: Response) => {
-  res.json({ status: "pong", message: "Server is alive and routing works!" });
-});
-
-// DB Readiness Check
-app.use((req: Request, res: Response, next: express.NextFunction) => {
-  // Allow health and ping to pass through if they weren't matched above
-  if (req.path === "/api/v1/health" || req.path === "/api/v1/ping") {
-    return next();
-  }
-
-  if (isDbReady) {
-    return next();
-  }
+// Middleware to block requests until DB is ready
+const checkDbReady = (req: Request, res: Response, next: NextFunction) => {
+  if (req.path === "/api/v1/health") return next();
   
   if (dbError) {
     console.error("Blocking request due to DB error:", dbError);
@@ -70,88 +47,20 @@ app.use((req: Request, res: Response, next: express.NextFunction) => {
     return;
   }
   
-  res.status(503).json({ error: "Server is starting up, please try again in a moment" });
-});
-
-// Sync database and start server
-const PORT = process.env.PORT || 5000;
-
-const HARDCODED_ADMIN = {
-  name: "System Admin",
-  email: "admin@hdms.local",
-  password: "AdminPassword123",
-};
-
-const cleanupSqliteBackupTables = async (): Promise<void> => {
-  if (sequelize.getDialect() !== "sqlite") {
+  if (!isDbReady) {
+    res.status(503).json({ error: "Server is still warming up. Please try again in 5 seconds." });
     return;
   }
-
-  const [results] = await sequelize.query(
-    "SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE '%_backup'",
-  );
-
-  const backupTableNames = (results as Array<{ name: string }>).map(
-    (row) => row.name,
-  );
-
-  for (const tableName of backupTableNames) {
-    await sequelize.query(`DROP TABLE IF EXISTS \`${tableName}\``);
-    console.warn(`Dropped stale SQLite backup table: ${tableName}`);
-  }
+  
+  next();
 };
 
-const ensurePatientProfiles = async (): Promise<void> => {
-  const patientUsers: any[] = await User.findAll({
-    where: { role: "patient" },
-  });
-  let createdCount = 0;
+app.use(checkDbReady);
 
-  for (const user of patientUsers) {
-    const existingProfile = await Patient.findOne({
-      where: { user_id: user.id },
-    });
-    if (!existingProfile) {
-      await Patient.create({
-        user_id: user.id,
-        date_of_birth: new Date("1970-01-01"),
-      });
-      createdCount += 1;
-    }
-  }
-
-  if (createdCount > 0) {
-    console.log(`Backfilled ${createdCount} missing patient profile(s)`);
-  }
-};
-
-const ensureHardcodedAdmin = async (): Promise<void> => {
-  const existingAdmin: any = await User.findOne({
-    where: { email: HARDCODED_ADMIN.email },
-  });
-
-  if (existingAdmin) {
-    return;
-  }
-
-  const passwordHash = await hashPassword(HARDCODED_ADMIN.password);
-
-  await User.create({
-    name: HARDCODED_ADMIN.name,
-    email: HARDCODED_ADMIN.email,
-    password_hash: passwordHash,
-    role: "admin",
-  });
-
-  console.warn(
-    `Hardcoded admin created: ${HARDCODED_ADMIN.email} / ${HARDCODED_ADMIN.password}`,
-  );
-};
-
-let isDbReady = false;
-let dbError: any = null;
-
-const startServer = async (): Promise<void> => {
+// ASYNC INITIALIZATION WRAPPER
+// This allows the server to bind to the PORT instantly, preventing 500 crashes
+// while the heavy database logic runs in the background.
+const startServer = async () => {
   try {
     console.log("Starting server initialization...");
     
@@ -161,7 +70,8 @@ const startServer = async (): Promise<void> => {
     app.use(auditLogMiddleware); 
 
     const dbModule = await import("./config/database.js");
-    sequelize = dbModule.default;
+    // Use the named export 'sequelize' from database.js
+    const sequelizeInstance = dbModule.sequelize;
     
     const modelsModule = await import("./models/index.js");
     User = modelsModule.User;
@@ -173,39 +83,34 @@ const startServer = async (): Promise<void> => {
     
     const authUtilsModule = await import("./utils/authUtils.js");
     hashPassword = authUtilsModule.hashPassword;
+
+    // Database Initialization
+    console.log("Connecting to database...");
+    await sequelizeInstance.authenticate();
     
-    authRoutes = (await import("./routes/authRoutes.js")).default;
-    departmentRoutes = (await import("./routes/departmentRoutes.js")).default;
-    queueRoutes = (await import("./routes/queueRoutes.js")).default;
-    ehrRoutes = (await import("./routes/ehrRoutes.js")).default;
-    pharmacyRoutes = (await import("./routes/pharmacyRoutes.js")).default;
-    vitalsRoutes = (await import("./routes/vitalsRoutes.js")).default;
-
-    // Register Routes after they are loaded
-    app.use("/api/v1/auth", authRoutes);
-    app.use("/api/v1/departments", departmentRoutes);
-    app.use("/api/v1/queue", queueRoutes);
-    app.use("/api/v1/ehr", ehrRoutes);
-    app.use("/api/v1/prescriptions", pharmacyRoutes);
-    app.use("/api/v1/vitals", vitalsRoutes);
-
-    await sequelize.authenticate();
-    console.log("Database connection successful");
-
-    const syncAlterEnabled = process.env.DB_SYNC_ALTER !== "false";
-
-    if (sequelize.getDialect() === "sqlite") {
-      await cleanupSqliteBackupTables();
-      await sequelize.sync();
-    } else {
-      await sequelize.sync({ alter: syncAlterEnabled });
+    if (sequelizeInstance.getDialect() === "sqlite") {
+      // Create tables if they don't exist
+      await sequelizeInstance.sync();
     }
+    
+    // Register Routes dynamically
+    const authRoutes = await import("./routes/authRoutes.js");
+    const departmentRoutes = await import("./routes/departmentRoutes.js");
+    const vitalsRoutes = await import("./routes/vitalsRoutes.js");
+    const queueRoutes = await import("./routes/queueRoutes.js");
+    const prescriptionRoutes = await import("./routes/prescriptionRoutes.js");
+    const inventoryRoutes = await import("./routes/inventoryRoutes.js");
+    const ehrRoutes = await import("./routes/ehrRoutes.js");
 
-    console.log("Database synchronized");
+    app.use("/api/v1/auth", authRoutes.default);
+    app.use("/api/v1/departments", departmentRoutes.default);
+    app.use("/api/v1/vitals", vitalsRoutes.default);
+    app.use("/api/v1/queue", queueRoutes.default);
+    app.use("/api/v1/prescriptions", prescriptionRoutes.default);
+    app.use("/api/v1/inventory", inventoryRoutes.default);
+    app.use("/api/v1/ehr", ehrRoutes.default);
 
-    await ensureHardcodedAdmin();
-    await ensurePatientProfiles();
-
+    console.log("✅ Server initialization complete.");
     isDbReady = true;
   } catch (error) {
     dbError = error;
@@ -219,7 +124,7 @@ const startServer = async (): Promise<void> => {
   }
 };
 
-// Start initialization but don't block
+// Start the background initialization
 startServer();
 
 export default app;
